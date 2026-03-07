@@ -314,17 +314,19 @@ export class StatistikeComponent implements OnInit {
   if (!vezba?.pokusaji) { return; }
 
   vezba.pokusaji.forEach(pokusaj => {
+    const ucenikSaOdeljenjem = this.filteredUcenici.find(u => u.id == pokusaj.idUcenika);
+
     const baseRow = [
       vezba.id,
-      vezba.naziv,
+      vezba.naziv ?? '',
       vezba.predmet?.naziv ?? '',
       vezba.predmet?.razred ?? '',
-      pokusaj.ucenik?.odeljenje?.skola?.naziv ?? '',
-      pokusaj.ucenik?.odeljenje ? `${pokusaj.ucenik.odeljenje.razred}/${pokusaj.ucenik.odeljenje.brojOdeljenja}` : '',
+      ucenikSaOdeljenjem?.odeljenje?.skola?.naziv ?? '',
+      ucenikSaOdeljenjem?.odeljenje ? `"'${ucenikSaOdeljenjem.odeljenje.razred}-${ucenikSaOdeljenjem.odeljenje.brojOdeljenja}"` : '',
       pokusaj.idUcenika,
-      pokusaj.ucenik?.firstName ?? '',
-      pokusaj.ucenik?.lastName ?? '',
-      pokusaj.ucenik?.username ?? '',
+      ucenikSaOdeljenjem?.firstName ?? pokusaj.ucenik?.firstName ?? '',
+      ucenikSaOdeljenjem?.lastName ?? pokusaj.ucenik?.lastName ?? '',
+      ucenikSaOdeljenjem?.username ?? pokusaj.ucenik?.username ?? '',
       pokusaj.datumPokusaja,
       pokusaj.brojTacnihOdgovora,
       pokusaj.brojNetacnihOdgovora,
@@ -339,7 +341,7 @@ export class StatistikeComponent implements OnInit {
             csvData.push([
               ...baseRow,
               zi + 1,
-              `"${(pz.zadatak?.opis ?? pz.zadatak?.tekst ?? '').replace(/"/g, '""')}"`,
+              `"${this.stripLatex(pz.zadatak?.opis ?? pz.zadatak?.tekst ?? '').replace(/"/g, '""')}"`,
               pz.brojPokusaja,
               odg.redniBroj,
               `"${this.stripLatex(odg.odgovor?.tekst ?? '').replace(/"/g, '""')}"`,
@@ -349,7 +351,7 @@ export class StatistikeComponent implements OnInit {
           });
         } else {
           csvData.push([...baseRow, zi + 1,
-          `"${this.stripLatex(pz.zadatak?.opis ?? pz.zadatak?.tekst ?? '').replace(/"/g, '""')}"`,
+            `"${this.stripLatex(pz.zadatak?.opis ?? pz.zadatak?.tekst ?? '').replace(/"/g, '""')}"`,
             pz.brojPokusaja, '', '', '', '']);
         }
       });
