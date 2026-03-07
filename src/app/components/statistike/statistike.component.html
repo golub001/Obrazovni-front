@@ -22,77 +22,61 @@
       </div>
     </div>
   
-    <!-- Attempt Details -->
-    <div *ngIf="selectedVezba && showAttempts" class="attempt-details">
-      <button class="delete-button" (click)="goBack()">Nazad na Vežbe</button>
-      <h2>Pokušaji za vezbu: {{ selectedVezba.naziv }}</h2>
-      <div class="filter-container">
-        <label for="classFilter">Prikaži pokušaje za odeljenje:</label>
-        <select id="classFilter" [(ngModel)]="selectedOdeljenjeId" (change)="filterAttempts()">
-          <!-- <option value="0">Sva odeljenja</option> -->
-          <option *ngFor="let o of filteredOdeljenja" [value]="o.id">({{ o.skola.naziv + ") " + o.razred + "/" + o.brojOdeljenja }}</option>
-        </select>
-        <button class="delete-button" (click)="exportToCSV()">Export to CSV</button>
-      </div>
-      <!--
-      
-      <div class="filter-container">
-        <label for="classFilter">PRIKAŽI POKUŠAJE ZA POJEDINAČNE UČENIKE:</label>
-        <select id="classFilter" [(ngModel)]="selectedUcenikId" (change)="filterAttemptsUcenik()">
-          <option *ngFor="let u of filteredPojedinacniUcenici" [value]="u.id">{{ u.firstName + " " + u.lastName }}</option>
-        </select>
-      </div>
-      
-      -->
-      
-       <!-- People -->
-      <div class="people-list">
-        <div *ngFor="let ucenik of filteredUcenici" class="people-item">
-            <p>Škola: {{ucenik.odeljenje?.skola?.naziv}}</p>
-            <p>Odeljenje: {{ ucenik.odeljenje?.razred + "/" + ucenik.odeljenje?.brojOdeljenja }}</p>
-            <p>Ime i Prezime: {{ ucenik.firstName + " " + ucenik.lastName }}</p>      
-            <button class="delete-button" (click)="selectUcenik(ucenik)">
-                {{ isUcenikSelected ? 'Detalji ↑' : 'Detalji ↓' }} <!-- Shows > when expanded, < when collapsed -->
-            </button>
-            <!-- Attempts -->
-            <div class="attempt-list">
-              <div *ngFor="let pokusaj of filteredPokusaji" class="attempt-item">
-                  <p>Datum: {{ pokusaj.datumPokusaja }}</p>
-                  <p>Tačni odgovori: {{ pokusaj.brojTacnihOdgovora }}</p>
-                  <button class="delete-button" (click)="selectAttempt(pokusaj)">
-                    {{ isAttemptSelected ? 'Detalji ↑' : 'Detalji ↓' }} <!-- Shows > when expanded, < when collapsed -->
-                </button>
-                  <!-- Attempt Information -->
-                  <div *ngIf="selectedPokusaj?.id == pokusaj.id" class="pokusaj-info">
-                    <h3>Detalji Pokusaja</h3>
-                    <!--<p><strong>Datum Pokusaja:</strong> {{ selectedPokusaj?.datumPokusaja }}</p>-->
-                    <p><strong>Broj Tačnih Odgovora:</strong> {{ selectedPokusaj?.brojTacnihOdgovora }}</p>
-                    <p><strong>Broj Netačnih Odgovora:</strong> {{ selectedPokusaj?.brojNetacnihOdgovora }}</p>
-                    <p><strong>Broj Uradjenih Zadataka:</strong> {{ selectedPokusaj?.brojUradjenihZadataka }}</p>
-                    
-                    <div *ngIf="selectedPokusaj?.pokusajiZadataka?.length || 0 > 0" class="zadaci-section">
-                      <p><strong>Zadaci:</strong> </p>
-                      <div *ngFor="let pz of selectedPokusaj?.pokusajiZadataka" class="zadatak-item">
-                        <p><strong style="font-size: 20px;">{{ pz.zadatak?.opis }}</strong> </p>
-                        <p><strong>Broj pokušaja:</strong> {{ pz.brojPokusaja }}</p>
-                        
-                        <div *ngIf="pz.pokusajiZadatakOdgovor.length > 0" class="odgovori-section">
-                          <p><strong>Odgovori:</strong> </p>
-                          <div *ngFor="let odgovor of pz.pokusajiZadatakOdgovor" [ngClass]="getOdgovorClass(odgovor.odgovor?.tacnost)">
-                            <p><strong>{{ odgovor.redniBroj }} . Odgovor</strong></p>
-                            <p><strong>Trajanje:</strong> {{ odgovor.vreme }}s</p>
-                            <p><strong>Rezultat odgovora: </strong> {{getTacnost(odgovor.odgovor?.tacnost) }}</p>
-                            <p><strong>Odgovor:</strong> {{ odgovor.odgovor?.tekst }}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-            </div>
-          </div>
+    <!-- Zamijeni attempt-details div: -->
+<div *ngIf="selectedVezba && showAttempts" class="attempt-details">
+  <div class="attempt-header">
+    <button class="delete-button" (click)="goBack()">← Nazad na Vežbe</button>
+    <h2>{{ selectedVezba.naziv }}</h2>
+    <button class="delete-button" (click)="exportToCSV()">⬇ Export CSV</button>
+  </div>
+
+  <div class="people-list">
+    <div *ngFor="let ucenik of filteredUcenici" class="people-item">
+      <div class="ucenik-header">
+        <div>
+          <strong>{{ ucenik.firstName }} {{ ucenik.lastName }}</strong>
+          <span class="ucenik-meta">{{ ucenik.username }}</span>
+          <span class="ucenik-meta" *ngIf="ucenik.odeljenje">
+            {{ ucenik.odeljenje.skola?.naziv ?? '' }} — {{ ucenik.odeljenje.razred }}/{{ ucenik.odeljenje.brojOdeljenja }}
+          </span>
+        </div>
+        <button class="delete-button" (click)="selectUcenik(ucenik)">
+          {{ previewUcenikId === ucenik.id ? 'Sakrij ↑' : 'Detalji ↓' }}
+        </button>
       </div>
 
+      <div class="attempt-list" *ngIf="previewUcenikId === ucenik.id">
+        <div *ngFor="let pokusaj of filteredPokusaji" class="attempt-item">
+          <div class="pokusaj-row">
+            <span>📅 {{ pokusaj.datumPokusaja }}</span>
+            <span>✅ {{ pokusaj.brojTacnihOdgovora }} tačnih</span>
+            <span>❌ {{ pokusaj.brojNetacnihOdgovora }} netačnih</span>
+            <span>📝 {{ pokusaj.brojUradjenihZadataka }} zadataka</span>
+            <button class="delete-button" (click)="selectAttempt(pokusaj)">
+              {{ selectedPokusaj?.id === pokusaj.id ? 'Sakrij ↑' : 'Detalji ↓' }}
+            </button>
+          </div>
+
+          <div *ngIf="selectedPokusaj?.id == pokusaj.id" class="pokusaj-info">
+              <div *ngFor="let pz of (selectedPokusaj?.pokusajiZadataka ?? [])" class="zadatak-item">
+              <p><strong style="font-size: 16px;">{{ pz.zadatak?.opis || pz.zadatak?.tekst }}</strong></p>
+              <p>Broj pokušaja: <strong>{{ pz.brojPokusaja }}</strong></p>
+              <div *ngIf="(pz.pokusajiZadatakOdgovor?.length ?? 0) > 0" class="odgovori-section">
+                <div *ngFor="let odgovor of pz.pokusajiZadatakOdgovor" [ngClass]="getOdgovorClass(odgovor.odgovor?.tacnost)">
+                  <p><strong>{{ odgovor.redniBroj }}. odgovor</strong> — {{ odgovor.vreme }}s</p>
+                  <p>{{ odgovor.odgovor?.tekst }} — <em>{{ getTacnost(odgovor.odgovor?.tacnost) }}</em></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <div *ngIf="filteredUcenici.length === 0" class="empty-state">
+      Nema pokušaja za ovu vežbu.
+    </div>
+  </div>
+</div>
   </div>
   

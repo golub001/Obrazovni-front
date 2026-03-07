@@ -181,24 +181,26 @@ export class StatistikeComponent implements OnInit {
   }
 
   selectExercise(t: Vezba) {
-    this.showAttempts = true;
-    this.selectedVezba = t;
-    this.showFilterUcenici = true;
-    this.vezbaService.getOdeljenjaByVezbaId(t.id).subscribe((res: Odeljenje[])=>{
-      res.forEach(element => {
-        var skola = this.skole.find(x => x.id == element.idSkole);
-        if(skola)
-        {
-          element.skola = skola;
-        }
+  this.showAttempts = true;
+  this.selectedVezba = t;
+  this.filteredUcenici = [];
+  this.filteredPokusaji = [];
+
+  // Učitaj SVE učenike koji imaju pokušaje za ovu vežbu direktno
+  if (t.pokusaji) {
+    const ucenikIds = [...new Set(t.pokusaji.map(p => p.idUcenika))];
+    ucenikIds.forEach(id => {
+      this.userService.getUserById(id || -1).subscribe((u: any) => {
+        this.zaduzenjeService.getOdeljenjeByUserId(u.id).subscribe((odeljenje: Odeljenje) => {
+          const skola = this.skole.find(x => x.id == odeljenje.idSkole);
+          if (skola) odeljenje.skola = skola;
+          u.odeljenje = odeljenje;
+          this.filteredUcenici.push(u);
+        });
       });
-      this.filteredOdeljenja = res;
     });
-    this.vezbaService.getUceniciByVezbaId(t.id).subscribe((res: User[])=>{
-      this.filteredPojedinacniUcenici = res;
-    });
-    this.filterAttempts(); // Refresh attempts based on selected exercise
   }
+}
 
   selectUcenik(ucenik: User){
     if(!this.isUcenikSelected || this.previewUcenikId != ucenik.id)
@@ -227,17 +229,15 @@ export class StatistikeComponent implements OnInit {
   }
 
   goBack() {
-    this.showAttempts = false;
-    this.showFilterUcenici = false;
-    this.selectedVezba = null;
-    this.selectedOdeljenjeId = 0;
-    this.selectedPokusaj = null;
-    this.filteredPokusaji = [];
-    this.filteredUcenici = [];
-    this.filteredOdeljenja = [];
-    this.isAttemptSelected = false;
-    this.isUcenikSelected = false;
-  }
+  this.showAttempts = false;
+  this.showFilterUcenici = false;
+  this.selectedVezba = null;
+  this.selectedPokusaj = null;
+  this.filteredPokusaji = [];
+  this.filteredUcenici = [];
+  this.isAttemptSelected = false;
+  this.isUcenikSelected = false;
+}
 
   getNivo(nivo: any): string {
     switch (nivo) {
@@ -253,18 +253,14 @@ export class StatistikeComponent implements OnInit {
   }
 
   getTacnost(tacnost: any) {
-    switch (tacnost) {
-      case "1":
-        return 'Tačan odgovor';
-      case "2":
-        return 'Približan odgovor';
-      case "3":
-      case "4":
-        return 'Netačan odgovor';
-      default:
-        return '';
-    }
+  switch (String(tacnost)) {
+    case "1": return 'Tačan odgovor';
+    case "2": return 'Približan odgovor';
+    case "3":
+    case "4": return 'Netačan odgovor';
+    default: return '';
   }
+}
 
   getOdgovorClass(tacnost: any): string {
     this.render();
@@ -284,34 +280,89 @@ export class StatistikeComponent implements OnInit {
   allExcercises(){
     this.selectedVezba = null;
   }
-
+  stripLatex(tekst: string): string {
+  if (!tekst) return '';
+  return tekst
+    .replace(/\$\$[\s\S]*?\$\$/g, '')  // ukloni $$...$$
+    .replace(/\$([^$]*)\$/g, '$1')      // $...$ → samo tekst unutra
+    .replace(/\\mathrm\{([^}]*)\}/g, '$1')  // \mathrm{x} → x
+    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1/$2')  // \frac{a}{b} → a/b
+    .replace(/\\left|\\right/g, '')
+    .replace(/\\[a-zA-Z]+\{([^}]*)\}/g, '$1')  // \cmd{x} → x
+    .replace(/\\[a-zA-Z]+/g, '')        // ostale \komande
+    .replace(/[{}]/g, '')               // zagrade
+    .replace(/\^/g, '^')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
   exportToCSV() {
-    const csvData = [];
-    const header = ['ID Vežbe', 'Ime vežbe', 'Odeljenje', 'Ime učenika', 'Datum pokušaja', 'Broj tačnih odgovora', 'Ukupno odgovora'];
-    csvData.push(header);
-  
-    this.filteredVezbe.forEach(vezba => {
-      if(vezba.pokusaji)
-      {
-        vezba.pokusaji.forEach(pokusaj => {
-          const row = [
-            vezba.id,
-            vezba.naziv,
-            pokusaj.ucenik?.odeljenje?.naziv,
-            `${pokusaj.ucenik?.firstName} ${pokusaj.ucenik?.lastName}`,
-            pokusaj.datumPokusaja,
-            pokusaj.brojTacnihOdgovora,
-            pokusaj.pokusajiZadataka?.length || 0
-          ];
-          csvData.push(row);
-        });
-      }     
-    });
-  
-    // Convert to CSV string
-    const csvContent = csvData.map(e => e.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    saveAs(blob, 'statistics.csv');
-  }
+  const csvData: any[][] = [];
+  const header = [
+    'ID Vežbe', 'Naziv vežbe', 'Predmet', 'Razred',
+    'Škola', 'Odeljenje',
+    'ID Učenika', 'Ime učenika', 'Prezime učenika', 'Username',
+    'Datum pokušaja',
+    'Tačni odgovori', 'Netačni odgovori',
+    'Urađenih zadataka', 'Neurađenih zadataka',
+    'Redni br. zadatka', 'Tekst zadatka',
+    'Broj pokušaja na zadatku',
+    'Redni br. odgovora', 'Odgovor tekst', 'Rezultat', 'Vreme (s)'
+  ];
+  csvData.push(header);
+
+  const vezba = this.selectedVezba;
+  if (!vezba?.pokusaji) { return; }
+
+  vezba.pokusaji.forEach(pokusaj => {
+    const baseRow = [
+      vezba.id,
+      vezba.naziv,
+      vezba.predmet?.naziv ?? '',
+      vezba.predmet?.razred ?? '',
+      pokusaj.ucenik?.odeljenje?.skola?.naziv ?? '',
+      pokusaj.ucenik?.odeljenje ? `${pokusaj.ucenik.odeljenje.razred}/${pokusaj.ucenik.odeljenje.brojOdeljenja}` : '',
+      pokusaj.idUcenika,
+      pokusaj.ucenik?.firstName ?? '',
+      pokusaj.ucenik?.lastName ?? '',
+      pokusaj.ucenik?.username ?? '',
+      pokusaj.datumPokusaja,
+      pokusaj.brojTacnihOdgovora,
+      pokusaj.brojNetacnihOdgovora,
+      pokusaj.brojUradjenihZadataka,
+      pokusaj.brojNeuradjenihZadataka ?? ''
+    ];
+
+    if (pokusaj.pokusajiZadataka?.length) {
+      pokusaj.pokusajiZadataka.forEach((pz, zi) => {
+        if (pz.pokusajiZadatakOdgovor?.length) {
+          pz.pokusajiZadatakOdgovor.forEach(odg => {
+            csvData.push([
+              ...baseRow,
+              zi + 1,
+              `"${(pz.zadatak?.opis ?? pz.zadatak?.tekst ?? '').replace(/"/g, '""')}"`,
+              pz.brojPokusaja,
+              odg.redniBroj,
+              `"${this.stripLatex(odg.odgovor?.tekst ?? '').replace(/"/g, '""')}"`,
+              this.getTacnost(String(odg.odgovor?.tacnost ?? '')),
+              odg.vreme
+            ]);
+          });
+        } else {
+          csvData.push([...baseRow, zi + 1,
+          `"${this.stripLatex(pz.zadatak?.opis ?? pz.zadatak?.tekst ?? '').replace(/"/g, '""')}"`,
+            pz.brojPokusaja, '', '', '', '']);
+        }
+      });
+    } else {
+      csvData.push([...baseRow, '', '', '', '', '', '', '']);
+    }
+  });
+
+  const BOM = '\uFEFF';
+  const csvContent = BOM + csvData.map(row => row.join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const naziv = (vezba.naziv ?? 'vezba').replace(/[^a-zA-Z0-9]/g, '_');
+  saveAs(blob, `statistike_${naziv}.csv`);
+}
   
 }
