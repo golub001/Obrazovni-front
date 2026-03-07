@@ -24,7 +24,7 @@ export class MojeVezbeComponent implements OnInit {
   selectedVezba: Vezba = {naziv: "", trajanjeVezbe: 0, id: 0, idPredmeta: 0, brojZadataka: 0, zadaci: []};
   selectedVezbaId: number | null = null;
   selectedOdeljenjeId: number | null = null;
-  selectedUcenikId: number | null = null;
+  selectedUcenikIds: number[] = [];
   ucenikPretraga: string = '';
   showIzmenaForm: boolean = false;
   showOdeljenjeForm: boolean = false;
@@ -123,7 +123,7 @@ export class MojeVezbeComponent implements OnInit {
         if (success) {
           alert('Vežba uspešno dodeljena odeljenju');
           this.ucitajVezbe();
-         // this.zatvoriForme();
+          this.zatvoriForme();
           this.selectedOdeljenjeId = null;
           this.selectedVezbaId = null;
           this.selectedSkolaId = null
@@ -133,20 +133,28 @@ export class MojeVezbeComponent implements OnInit {
   }
 
   dodeliVezbuUceniku() {
-    if (this.selectedVezbaId && this.selectedUcenikId) {
-      this.vezbaService.addVezbaUcenik(this.selectedUcenikId, this.selectedVezbaId).subscribe((success: boolean) => {
-        if (success) {
-          alert('Vežba uspešno dodeljena učeniku');
+  if (this.selectedVezbaId && this.selectedUcenikIds.length > 0) {
+    const requests = this.selectedUcenikIds.map(id =>
+      this.vezbaService.addVezbaUcenik(id, this.selectedVezbaId!)
+    );
+    
+    let completed = 0;
+    requests.forEach(req => {
+      req.subscribe((success: boolean) => {
+        completed++;
+        if (completed === requests.length) {
+          alert(`Vežba uspešno dodeljena ${completed} učeniku/cima`);
           this.ucitajVezbe();
-          this.selectedUcenikId = null;
+          this.selectedUcenikIds = [];
           this.selectedVezbaId = null;
           this.UcenikSelectedOdeljenjeId = null;
           this.UcenikSelectedSkolaId = null;
-          //this.zatvoriForme();
+          this.zatvoriForme();
         }
       });
-    }
+    });
   }
+}
 
   prikaziIzmenaForm(vezbaId: number) {
     this.selectedVezbaId = vezbaId;
@@ -167,7 +175,7 @@ export class MojeVezbeComponent implements OnInit {
         if (success) {
           alert('Vežba uspešno izmenjena');
           this.ucitajVezbe();
-          //this.zatvoriForme();
+          this.zatvoriForme();
         }
       });
     }
@@ -233,4 +241,25 @@ export class MojeVezbeComponent implements OnInit {
     }
     this.UcenikSelectedOdeljenjeId = null;
   }
+  toggleUcenik(id: number) {
+  const idx = this.selectedUcenikIds.indexOf(id);
+  if (idx === -1) this.selectedUcenikIds.push(id);
+  else this.selectedUcenikIds.splice(idx, 1);
+}
+
+isUcenikSelected(id: number): boolean {
+  return this.selectedUcenikIds.includes(id);
+}
+
+selectAllUcenici(vezba: Vezba) {
+  const svi = this.filtriraniUcenici(vezba) ?? [];
+  if (this.selectedUcenikIds.length === svi.length) {
+    this.selectedUcenikIds = [];
+  } else {
+    this.selectedUcenikIds = svi.map(u => u.id);
+  }
+}
+onOdeljenjeChange() {
+  this.selectedUcenikIds = [];
+}
 }

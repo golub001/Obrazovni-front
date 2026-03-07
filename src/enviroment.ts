@@ -1,6 +1,6 @@
 export const environment = {
-    apiUrl: "https://imi.pmf.kg.ac.rs/programirano_ucenje/programiranoUcenjeAPI/"
-   //apiUrl: "http://localhost/programiranoUcenjeAPI/"
+    //apiUrl: "https://imi.pmf.kg.ac.rs/programirano_ucenje/programiranoUcenjeAPI/"
+   apiUrl: "http://localhost/programiranoUcenjeAPI/"
 }
 
 export const tacnostOdgovora = {

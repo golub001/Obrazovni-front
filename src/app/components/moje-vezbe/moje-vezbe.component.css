@@ -210,3 +210,87 @@ input.ng-valid.ng-touched {
   border-color: green; /* Color for valid fields */
   border-width: 2px;
 }
+.ucenik-modal { min-width: 480px; max-width: 560px; }
+
+.filter-row { display: flex; gap: 16px; margin-bottom: 20px; }
+.filter-group { display: flex; flex-direction: column; flex: 1; gap: 6px; }
+.filter-group label { font-size: 12px; font-weight: 600; text-transform: uppercase; color: #004AAD; }
+.filter-group select {
+  padding: 8px 12px; border: 1px solid #4d94ff; border-radius: 8px;
+  font-size: 14px; outline: none; background: #fff; color: #004AAD;
+  transition: border-color 0.2s;
+}
+.filter-group select:focus { border-color: #004AAD; }
+
+.ucenik-list-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #004AAD;
+}
+.btn-select-all {
+  font-size: 12px; color: #FF914D; background: none;
+  border: none; cursor: pointer; padding: 0; font-weight: 600;
+}
+.btn-select-all:hover { text-decoration: underline; color: #FFA500; }
+
+.ucenik-list {
+  max-height: 240px; overflow-y: auto; border: 1px solid #4d94ff;
+  border-radius: 10px; margin-bottom: 12px;
+}
+
+.ucenik-avatar { display: none; }
+
+.ucenik-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; cursor: pointer;
+  transition: background 0.15s; border-bottom: 1px solid #D8FEFF;
+}
+.ucenik-item:last-child { border-bottom: none; }
+.ucenik-item:hover { background: #D8FEFF; }
+.ucenik-item.selected { background: #b8f0f3; }
+
+.ucenik-info { display: flex; flex-direction: column; flex: 1; }
+.ucenik-name { font-size: 14px; font-weight: 600; color: #004AAD; }
+.ucenik-username { font-size: 12px; color: #4d94ff; }
+
+.check-icon {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #FF914D; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+}
+
+.empty-state { padding: 20px; text-align: center; color: #4d94ff; font-size: 14px; }
+
+.dodeli-footer {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-top: 4px;
+}
+.selected-count { font-size: 13px; color: #004AAD; font-weight: 600; }
+.btn-dodeli {
+  padding: 9px 22px; background: #FF914D; color: #fff;
+  border: none; border-radius: 8px; cursor: pointer;
+  font-size: 14px; font-weight: 600; transition: background 0.2s;
+}
+.btn-dodeli:hover:not(:disabled) { background: #FFA500; }
+.btn-dodeli:disabled { background: #ffd4b8; cursor: not-allowed; }
+
+.dodeljeni-section { 
+  margin-top: 20px; border-top: 2px solid #D8FEFF; padding-top: 16px; 
+}
+.dodeljeni-section h3 { 
+  font-size: 11px; font-weight: 700; color: #4d94ff; 
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; 
+}
+.dodeljeni-list { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+  gap: 8px; 
+}
+.dodeljeni-tag {
+  padding: 8px 14px; background: #fff; border-radius: 8px;
+  font-size: 13px; font-weight: 600; color: #004AAD; 
+  border: 1px solid #4d94ff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  text-align: center;
+}
+.empty-label { font-size: 13px; color: #4d94ff; }

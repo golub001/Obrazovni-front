@@ -33,27 +33,75 @@
 
       <!-- Prikaz i dodela učenika Modal -->
       <div *ngIf="showUcenikForm && selectedVezbaId === vezba.id" class="modal">
-        <div class="modal-content">
+        <div class="modal-content ucenik-modal">
           <span class="close" (click)="zatvoriForme()">&times;</span>
-          <h2>Dodeli vežbu učeniku</h2>
-          <label for="skola">Škola</label><br>
-          <select id="idSkole" [(ngModel)]="UcenikSelectedSkolaId" (change)="filter()" required>
-            <option *ngFor="let s of skole" [value]="s.id">{{ s.naziv }}</option>
-          </select>
-          <label *ngIf="UcenikSelectedSkolaId" for="idOdeljenja">Izaberite odeljenje:</label>
-          <select *ngIf="UcenikSelectedSkolaId" [(ngModel)]="UcenikSelectedOdeljenjeId" id="idOdeljenja">
-            <option *ngFor="let odeljenje of filtriranaOdeljenja()" [value]="odeljenje.id">{{ odeljenje.razred }}/{{ odeljenje.brojOdeljenja }}</option>
-          </select>
-          <label *ngIf="UcenikSelectedOdeljenjeId"  for="ucenici">Izaberite učenika:</label>
-          <select *ngIf="UcenikSelectedOdeljenjeId" [(ngModel)]="selectedUcenikId" id="ucenici">
-            <option *ngFor="let ucenik of filtriraniUcenici(vezba)" [value]="ucenik.id">{{ ucenik.firstName + " " + ucenik.lastName }}</option>
-          </select>
-          <button (click)="dodeliVezbuUceniku()">Dodeli</button>
-          
-          <h2>Učenici kojima je vežba dodeljena:</h2>
-          <ul>
-            <li *ngFor="let ucenik of vezba.ucenici"><label>{{ ucenik.firstName }} {{ ucenik.lastName }} ({{ ucenik.username }})</label></li>
-          </ul>
+          <h2>Dodeli vežbu učenicima</h2>
+
+          <div class="filter-row">
+            <div class="filter-group">
+              <label>Škola</label>
+              <select [(ngModel)]="UcenikSelectedSkolaId" (change)="filter()">
+                <option [value]="null" disabled>Izaberi školu...</option>
+                <option *ngFor="let s of skole" [value]="s.id">{{ s.naziv }}</option>
+              </select>
+            </div>
+
+            <div class="filter-group" *ngIf="UcenikSelectedSkolaId">
+              <label>Odeljenje</label>
+              <!-- Zamijeni samo ovu liniju u ucenik modalu: -->
+                <select [(ngModel)]="UcenikSelectedOdeljenjeId" id="idOdeljenja" (change)="onOdeljenjeChange()">
+                <option [value]="null" disabled>Izaberi odeljenje...</option>
+                <option *ngFor="let o of filtriranaOdeljenja()" [value]="o.id">
+                  {{ o.razred }}/{{ o.brojOdeljenja }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <ng-container *ngIf="UcenikSelectedOdeljenjeId">
+            <div class="ucenik-list-header">
+              <span>Dostupni učenici</span>
+              <button class="btn-select-all" (click)="selectAllUcenici(vezba)">
+                {{ selectedUcenikIds.length === (filtriraniUcenici(vezba)?.length ?? 0) ? 'Poništi sve' : 'Selektuj sve' }}
+              </button>
+            </div>
+
+            <div class="ucenik-list">
+              <div
+                *ngFor="let ucenik of filtriraniUcenici(vezba)"
+                class="ucenik-item"
+                [class.selected]="isUcenikSelected(ucenik.id)"
+                (click)="toggleUcenik(ucenik.id)">
+                <div class="ucenik-avatar">{{ ucenik.firstName[0] }}{{ ucenik.lastName[0] }}</div>
+                <div class="ucenik-info">
+                  <span class="ucenik-name">{{ ucenik.firstName }} {{ ucenik.lastName }}</span>
+                  <span class="ucenik-username">{{ ucenik.username }}</span>
+                </div>
+                <div class="check-icon" *ngIf="isUcenikSelected(ucenik.id)">✓</div>
+              </div>
+
+              <div *ngIf="(filtriraniUcenici(vezba)?.length ?? 0) === 0" class="empty-state">
+                Svi učenici iz ovog odeljenja su već dodeljeni.
+              </div>
+            </div>
+
+            <div class="dodeli-footer">
+              <span class="selected-count">{{ selectedUcenikIds.length }} učenik(a) selektovano</span>
+              <button class="btn-dodeli" [disabled]="selectedUcenikIds.length === 0" (click)="dodeliVezbuUceniku()">
+                Dodeli vežbu
+              </button>
+            </div>
+          </ng-container>
+
+          <div class="dodeljeni-section">
+            <h3>Već dodeljeni učenici</h3>
+            <div class="dodeljeni-list">
+              <span *ngFor="let ucenik of vezba.ucenici" class="dodeljeni-tag">
+                {{ ucenik.firstName }} {{ ucenik.lastName }}
+              </span>
+              <span *ngIf="!vezba.ucenici?.length" class="empty-label">Nema dodeljenih učenika.</span>
+            </div>
+          </div>
         </div>
       </div>
 
