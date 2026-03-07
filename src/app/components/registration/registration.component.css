@@ -284,3 +284,54 @@ td {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   text-align: center;
 }
+.csv-preview { margin-top: 20px; }
+
+.csv-header-row {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;
+}
+.csv-header-row h3 { margin: 0; color: #004AAD; }
+
+.csv-actions { display: flex; gap: 10px; }
+
+.csv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.csv-table th {
+  background-color: #004AAD; color: #D8FEFF;
+  padding: 8px 10px; text-align: left; white-space: nowrap;
+}
+.csv-table td { padding: 5px 6px; border-bottom: 1px solid #D8FEFF; background: #fff; }
+.csv-row-invalid td { background-color: #fff5f5; }
+
+.csv-input {
+  width: 100px; padding: 5px 8px;
+  border: 1px solid #4d94ff; border-radius: 4px;
+  font-size: 13px; color: #004AAD;
+}
+.csv-input.wide { width: 160px; }
+.csv-input.small { width: 60px; }
+.csv-input.invalid { border-color: red; background: #fff0f0; }
+
+.csv-select {
+  padding: 5px 8px; border: 1px solid #4d94ff;
+  border-radius: 4px; font-size: 13px; color: #004AAD;
+  background: #fff;
+}
+
+.btn-remove-row {
+  background: #ff6b6b; color: #fff;
+  border: none; border-radius: 4px;
+  padding: 4px 8px; cursor: pointer; font-size: 13px;
+}
+.btn-remove-row:hover { background: #e53935; }
+
+.csv-footer {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-top: 16px; flex-wrap: wrap; gap: 10px;
+}
+.csv-info { font-size: 14px; color: #004AAD; font-weight: 600; }
+input:disabled, select:disabled {
+  background-color: #e9e9e9;
+  color: #aaa;
+  cursor: not-allowed;
+  border-color: #ccc;
+}

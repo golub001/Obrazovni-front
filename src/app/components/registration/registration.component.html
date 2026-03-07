@@ -202,20 +202,80 @@
   </div>
 
   <!-- Forma za dodavanje korisnika iz CSV -->
-  <div class="form-container" [ngClass]="{ 'active': activeForm === 'csv-registration' }">
-    <form [formGroup]="csvRegistrationForm" (ngSubmit)="processCSV()">
-      <h2>Dodaj korisnike iz CSV-a</h2>
-      <p>Nazivi kolona u CSV-u: Ime, Prezime, Email, Role (2-Profesor, 3-Učenik), Odeljenje, Razred, idSkole</p>
-      <label>Informacije o školama:</label>
-        <select>
-          <option value="" disabled selected>Izaberite školu</option>
-          <option *ngFor="let s of skole" [value]="s.id">{{ s.naziv + " ID: " + s.id }}</option>
-        </select>
-      <input type="file" (change)="onFileSelected($event)" accept=".csv">
+<div class="form-container" [ngClass]="{ 'active': activeForm === 'csv-registration' }">
+  <h2>Dodaj korisnike iz CSV-a</h2>
+  <p>Nazivi kolona u CSV-u: Ime, Prezime, Email, Role (2-Profesor, 3-Učenik), Odeljenje, Razred, idSkole</p>
   
-      <button type="submit">Dodaj Korisnike</button>
-    </form>
+
+  <input type="file" (change)="onFileSelected($event)" accept=".csv">
+
+  <!-- Tabela za pregled i editovanje -->
+  <div *ngIf="csvData && csvData.length > 0" class="csv-preview">
+    <div class="csv-header-row">
+      <h3>Pregled učitanih podataka ({{ csvData.length }} redova)</h3>
+      <div class="csv-actions">
+        <button class="delete-button" (click)="addCsvRow()">+ Dodaj red</button>
+        <button class="btn-dodeli" (click)="processCSV()">Dodaj sve korisnike</button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="csv-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Ime</th>
+            <th>Prezime</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Odeljenje</th>
+            <th>Razred</th>
+            <th>ID Škole</th>
+            <th>Akcija</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of csvData; let i = index" [class.csv-row-invalid]="!isRowValid(row)">
+            <td>{{ i + 1 }}</td>
+            <td><input class="csv-input" [(ngModel)]="row['Ime']" [class.invalid]="!row['Ime']"></td>
+            <td><input class="csv-input" [(ngModel)]="row['Prezime']" [class.invalid]="!row['Prezime']"></td>
+            <td><input class="csv-input wide" [(ngModel)]="row['Email']" [class.invalid]="!row['Email']"></td>
+            <td>
+              <select class="csv-select" [(ngModel)]="row['Role']">
+                <option value="2">Profesor</option>
+                <option value="3">Učenik</option>
+              </select>
+            </td>
+            <!-- Odeljenje -->
+            <td><input class="csv-input small" [(ngModel)]="row['Odeljenje']" [disabled]="row['Role'] == '2'"></td>
+
+            <!-- Razred -->
+            <td><input class="csv-input small" [(ngModel)]="row['Razred']" [disabled]="row['Role'] == '2'"></td>
+
+            <!-- ID Škole -->
+            <td>
+              <select class="csv-select" [(ngModel)]="row['idSkole']" [disabled]="row['Role'] == '2'">
+                <option value="">—</option>
+                <option *ngFor="let s of skole" [value]="s.id">{{ s.naziv }}</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn-remove-row" (click)="removeCsvRow(i)">✕</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="csv-footer">
+      <span class="csv-info">
+        ✅ Validnih: {{ validRowCount() }} &nbsp;|&nbsp;
+        ❌ Nevalidnih: {{ csvData.length - validRowCount() }}
+      </span>
+      <button class="btn-dodeli" (click)="processCSV()">Dodaj sve korisnike</button>
+    </div>
   </div>
+</div>
   
 </div>
 

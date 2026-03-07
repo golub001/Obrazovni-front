@@ -186,7 +186,27 @@ export class RegistrationComponent implements OnInit {
       }
     );
   }
+  // Dodaj u klasu:
 
+addCsvRow() {
+  this.csvData.push({
+    'Ime': '', 'Prezime': '', 'Email': '',
+    'Role': '3', 'Odeljenje': '', 'Razred': '', 'idSkole': ''
+  });
+}
+
+removeCsvRow(index: number) {
+  this.csvData.splice(index, 1);
+}
+
+isRowValid(row: any): boolean {
+  return !!(row['Ime'] && row['Prezime'] && row['Email'] &&
+    row['Email'].includes('@') && row['Role']);
+}
+
+validRowCount(): number {
+  return this.csvData?.filter((r: any) => this.isRowValid(r)).length ?? 0;
+}
   addOdeljenje(){
     const odeljenje: OdeljenjeDTO = this.OdeljenjeForm.value;
     this.zaduzenjaService.addOdeljenje(odeljenje).subscribe(
@@ -259,25 +279,36 @@ export class RegistrationComponent implements OnInit {
   
       // Sačekaj odgovor iz checkUsername
       const res = await this.userService.checkUsername(newUser.username).toPromise();
+      console.log('Email:', newUser.username, '| checkUsername vratio:', res, '| tip:', typeof res);
+
       if (res) {
         try {
           // Sačekaj odgovor iz registerUser
           const userId = await this.userService.registerUser(newUser).toPromise();
           if (userId != null) {
             if (newUser.role == 3) {
-              var odeljenje = this.odeljenja?.find(x => x.brojOdeljenja == row['Odeljenje'] && x.razred == row['Razred'] && x.idSkole == row['idSkole']);
+              var odeljenje = this.odeljenja?.find(x => 
+                x.brojOdeljenja == row['Odeljenje'] && 
+                x.razred == row['Razred'] && 
+                x.idSkole == row['idSkole']
+              );
               if (odeljenje) {
-                // Sačekaj odgovor iz addOdeljenjeUcenik
                 const odeljenjeRes = await this.zaduzenjaService.addOdeljenjeUcenik(userId, odeljenje.id).toPromise();
                 if (odeljenjeRes) {
-                  success = success + 1;
-                  this.emailService.sendMail("Vaš nalog na Platformi za programirano učenje je uspešno i podaci za prijavu su EMAIL: "+newUser.username+"  LOZINKA: "+newUser.password+" .  Lozinku morate promeniti pri prvoj prijavi na platformu!", newUser.username).subscribe();
+                  success++;
                 } else {
-                  failed = failed + 1;
+                  failed++;
                 }
+              } else {
+                // Korisnik dodat ali odeljenje nije pronadjeno
+                success++;
+                console.warn('Odeljenje nije pronađeno za:', newUser.username, 
+                  '| Odeljenje:', row['Odeljenje'], 
+                  '| Razred:', row['Razred'], 
+                  '| idSkole:', row['idSkole']);
               }
             } else {
-              success = success + 1;
+              success++;
             }
           } else {
             failed = failed + 1;
