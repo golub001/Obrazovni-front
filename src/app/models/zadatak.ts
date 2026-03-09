@@ -25,5 +25,6 @@ export interface Zadatak {
     predmet: Predmet;
     idTeme: number;
     tema?: Tema;
+    markdown: boolean;
   }
   

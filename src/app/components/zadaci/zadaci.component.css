@@ -103,3 +103,25 @@ body {
   height: auto; /* Održava proporcije slike */
   border: 1px solid #004AAD; /* Tamniji plavi okvir oko slike */
 }
+.latex-output pre {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 10px 0;
+  border: none;
+}
+
+.latex-output code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+}
+
+.latex-output p code {
+  background-color: #f0f0f0;
+  color: #004AAD;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 13px;
+}

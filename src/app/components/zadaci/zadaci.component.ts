@@ -11,7 +11,8 @@ import { Router } from '@angular/router';
 import { FileService } from '../../services/file-service/file.service';
 import { MathJaxService } from '../../services/math-jax/math-jax.service';
 import { Tema } from '../../models/tema';
-
+import { marked } from 'marked';
+import hljs from 'highlight.js';
 @Component({
   selector: 'app-zadaci',
   templateUrl: './zadaci.component.html',
@@ -71,6 +72,7 @@ export class ZadaciComponent implements OnInit {
       tekst: ['', Validators.required],
       idPredmeta: ['', Validators.required],
       latex: [false],
+      markdown: [false],
       picture: [false],
       idTeme: ['', Validators.required],
     });
@@ -96,6 +98,14 @@ export class ZadaciComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    marked.setOptions({
+    highlight: function(code: string, lang: string) {
+      if (lang && hljs.getLanguage(lang)) {
+        return hljs.highlight(code, { language: lang }).value;
+      }
+      return hljs.highlightAuto(code).value;
+    }
+  } as any);
     if(this.userService.isAdmin())
     {
       this.zadaciService.getPredmeti().subscribe(
@@ -128,7 +138,10 @@ export class ZadaciComponent implements OnInit {
       console.error('Error rendering MathJax:', error);
     });
   }
-
+  renderMarkdown(tekst: string): string {
+  if (!tekst) return '';
+  return marked.parse(tekst) as string;
+}
   onFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length) {

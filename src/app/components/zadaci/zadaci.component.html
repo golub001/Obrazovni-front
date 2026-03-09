@@ -15,13 +15,31 @@
       
       <div>
         <label for="latexOption">Uneti tekst zadatka je Latex kod:</label>
-        <input type="checkbox" id="latexOption" formControlName="latex" (change)="updateLatex()">
+        <input type="checkbox" id="latexOption" formControlName="latex" 
+              (change)="updateLatex()" [disabled]="taskForm.get('markdown')?.value">
+        <span *ngIf="taskForm.get('markdown')?.value" style="color: #FF6B6B; font-size: 13px;">
+          ⚠ LaTeX nije dostupan kada je Markdown aktivan
+        </span>
       </div>
 
-      <div *ngIf="taskForm.get('latex')?.value">
-        <label>Latex:</label>
+      <div>
+        <label for="markdownOption">Uneti tekst sadrži kod (Markdown):</label>
+        <input type="checkbox" id="markdownOption" formControlName="markdown"
+              [disabled]="taskForm.get('latex')?.value">
+        <span *ngIf="taskForm.get('latex')?.value" style="color: #FF6B6B; font-size: 13px;">
+          ⚠ Markdown nije dostupan kada je LaTeX aktivan
+        </span>
+      </div>
+
+      <div *ngIf="taskForm.get('latex')?.value || taskForm.get('markdown')?.value">
+        <label>Pregled:</label>
         <div class="latex-output">
-          <div [innerHTML]="renderLatex(taskForm.get('tekst')?.value)"></div>
+          <div *ngIf="taskForm.get('latex')?.value && !taskForm.get('markdown')?.value"
+              [innerHTML]="renderLatex(taskForm.get('tekst')?.value)"></div>
+          <div *ngIf="taskForm.get('markdown')?.value && !taskForm.get('latex')?.value"
+              [innerHTML]="renderMarkdown(taskForm.get('tekst')?.value)"></div>
+          <div *ngIf="taskForm.get('latex')?.value && taskForm.get('markdown')?.value"
+              [innerHTML]="renderMarkdown(renderLatex(taskForm.get('tekst')?.value))"></div>
         </div>
       </div>
     
@@ -54,12 +72,12 @@
         <label><span style="color: #004AAD;">Opis: </span> {{ zadatak?.opis }}</label>
         <br>
         <label><span style="color: #004AAD;">Tekst: </span></label>
-        <p *ngIf="!taskForm.get('latex')?.value">{{ zadatak?.tekst }}</p>
-        <div *ngIf="taskForm.get('latex')?.value">
-          <div class="latex-output">
-            <div [innerHTML]="renderLatex(zadatak?.tekst)"></div>
-          </div>
-        </div>      
+        <p *ngIf="!taskForm.get('latex')?.value && !taskForm.get('markdown')?.value">{{ zadatak?.tekst }}</p>
+        <div *ngIf="taskForm.get('markdown')?.value && !taskForm.get('latex')?.value"
+            [innerHTML]="renderMarkdown(zadatak?.tekst ?? '')"></div>
+        <div *ngIf="taskForm.get('latex')?.value" class="latex-output">
+          <div [innerHTML]="renderLatex(zadatak?.tekst)"></div>
+        </div>     
         <!--<label>Nivo težine: {{ getZadatakClass(taskForm.get('nivo')?.value) }}</label>
         <br>-->
         <label><span style="color: #004AAD;">Predmet: </span>{{ zadatak?.predmet?.naziv +" ("+ zadatak?.predmet?.razred + ". razred)" }}</label>  
@@ -91,7 +109,7 @@
     <div *ngIf="answersForm.get('hintLatex')?.value">
       <label style="color:#FFA500;">Pomoć za zadatak sa približnim odgovorom(Latex)</label>
       <div class="latex-output">
-        <div [innerHTML]="answersForm.get('hint')?.value"></div>
+        <div [innerHTML]="defHintString"></div>
       </div>
     </div>
     <label for="wrong">Pogrešan odgovor</label>

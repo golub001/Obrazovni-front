@@ -20,10 +20,15 @@
                   <h3>{{ zadatak.opis }}</h3>
                   <h4>Tema: {{ zadatak.tema?.naziv }}</h4>
                   <h4>Tekst zadatka:</h4>
-                  <p *ngIf="!zadatak.latex">{{ zadatak.tekst }}</p>
-                    <div class="latex-output" *ngIf="zadatak.latex">
+                  <p *ngIf="!zadatak.latex && !zadatak.markdown">{{ zadatak.tekst }}</p>
+                    <div *ngIf="zadatak.markdown && !zadatak.latex" 
+                        [innerHTML]="renderMarkdown(zadatak.tekst)"></div>
+                    <div *ngIf="zadatak.latex && !zadatak.markdown" class="latex-output">
                     <div [innerHTML]="renderLatex(zadatak.tekst)"></div>
-                    </div>    
+                    </div>
+                    <div *ngIf="zadatak.latex && zadatak.markdown" class="latex-output">
+                    <div [innerHTML]="renderMarkdown(renderLatex(zadatak.tekst))"></div>
+                    </div>  
                     
                 <br>
               <div *ngIf="zadatak.picture == true">

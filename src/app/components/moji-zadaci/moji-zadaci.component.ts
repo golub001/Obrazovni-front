@@ -12,7 +12,8 @@ import { Odgovor } from '../../models/odgovor';
 import { MathJaxService } from '../../services/math-jax/math-jax.service';
 import { Router } from '@angular/router';
 import { Tema } from '../../models/tema';
-
+import { marked } from 'marked';
+import hljs from 'highlight.js';
 @Component({
   selector: 'app-moji-zadaci',
   templateUrl: './moji-zadaci.component.html',
@@ -161,7 +162,10 @@ export class MojiZadaciComponent implements OnInit {
     });
     return this.mathString;
   }
-
+  renderMarkdown(tekst: string): string {
+  if (!tekst) return '';
+  return marked.parse(tekst) as string;
+}
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
     if (file) {
