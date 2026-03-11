@@ -41,7 +41,8 @@ export class ZaduzenjaComponent implements OnInit {
   };
 
   showModal: boolean = false; // Dodato za modal kontrolu
-
+  zahtevi: any[] = [];
+  filteredZahtevi: any[] = [];
   constructor(private zaduzenjaService: ZaduzenjaService, private router: Router) {
    }
 
@@ -60,6 +61,7 @@ export class ZaduzenjaComponent implements OnInit {
             this.zaduzenjaService.getOdeljenja().subscribe(odeljenja => {
               this.odeljenja = odeljenja;
               this.zaduzenjaService.getAllZaduzenja().subscribe(zaduzenja => {
+                this.loadZahtevi();
                 zaduzenja.forEach(zaduzenje => {
                   zaduzenje.odeljenje = this.odeljenja.find(x => x.id === zaduzenje.idOdeljenja);
                   zaduzenje.predmet = this.predmeti.find(x => x.id === zaduzenje.idPredmeta);
@@ -85,7 +87,35 @@ export class ZaduzenjaComponent implements OnInit {
       }
     );
   }
+    loadZahtevi() {
+    this.zaduzenjaService.getZahtevi().subscribe(zahtevi => {
+      this.zahtevi = zahtevi.map(z => ({
+        ...z,
+        predmet: this.predmeti.find(p => p.id == z.idPredmeta),
+        odeljenje: this.odeljenja.find(o => o.id == z.idOdeljenja),
+        profesor: this.profesori.find(p => p.id == z.idProfesora),
+        skola: this.skole.find(s => s.id == z.idSkole)
+      }));
+      this.filteredZahtevi = this.zahtevi;
+    });
+  }
+    odobravaZahtev(id: number) {
+    this.zaduzenjaService.odobravaZahtev(id).subscribe(res => {
+      if (res) {
+        alert('Zahtjev je odobren!');
+        this.loadZaduzenja();
+      }
+    });
+  }
 
+  odbijZahtev(id: number) {
+    this.zaduzenjaService.odbijZahtev(id).subscribe(res => {
+      if (res) {
+        alert('Zahtjev je odbijen.');
+        this.loadZahtevi();
+      }
+    });
+  }
   addZaduzenje() {
     this.zaduzenjaService.addZaduzenje(this.newZaduzenje).subscribe((res: any) => {
       if(res){

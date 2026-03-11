@@ -89,4 +89,24 @@ export class ZaduzenjaService {
   getOdeljenjaByProfesorId(id: number): Observable<Odeljenje[]>{
     return this.http.get<Odeljenje[]>(this.url + "zaduzenja.php?action=getOdeljenjaByProfesorId&id=" + id);
   }
+    dodajZahtev(zahtev: any): Observable<boolean> {
+      return this.http.post<boolean>(this.url + "zaduzenja.php", 
+          { ...zahtev, action: "dodajZahtev" });
+  }
+
+  getZahtevi(): Observable<any[]> {
+      return this.http.get<any[]>(this.url + "zaduzenja.php?action=getZahtevi");
+  }
+
+  getZahteviByProfesorId(id: number): Observable<any[]> {
+      return this.http.get<any[]>(this.url + "zaduzenja.php?action=getZahteviByProfesorId&id=" + id);
+  }
+
+  odobravaZahtev(id: number): Observable<boolean> {
+      return this.http.get<boolean>(this.url + "zaduzenja.php?action=odobravaZahtev&id=" + id);
+  }
+
+  odbijZahtev(id: number): Observable<boolean> {
+      return this.http.get<boolean>(this.url + "zaduzenja.php?action=odbijZahtev&id=" + id);
+  }
 }

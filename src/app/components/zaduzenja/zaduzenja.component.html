@@ -1,6 +1,44 @@
 
 <br>
+<!-- Sekcija za zahtjeve -->
+<div class="container_all registration" *ngIf="zahtevi.length > 0">
+  <h1>Zahtjevi za zaduženje 
+    <span class="badge">{{ zahtevi.length }}</span>
+  </h1>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Profesor</th>
+          <th>Email</th>
+          <th>Predmet</th>
+          <th>Škola</th>
+          <th>Razred</th>
+          <th>Odeljenje</th>
+          <th>Akcije</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let z of zahtevi">
+          <td>{{ z.profesor?.firstName + " " + z.profesor?.lastName }}</td>
+          <td>{{ z.profesor?.username }}</td>
+          <td>{{ z.predmet?.naziv || '-' }}</td>
+          <td>{{ z.skola?.naziv || '-' }}</td>
+          <td>{{ z.odeljenje?.razred || '-' }}</td>
+          <td>{{ z.odeljenje?.brojOdeljenja || '-' }}</td>
+          <td>
+            <button class="btn-odobri" (click)="odobravaZahtev(z.id)">✅ Odobri</button>
+            <button class="btn-odbij" (click)="odbijZahtev(z.id)">❌ Odbij</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
+<div class="container_all registration no-requests" *ngIf="zahtevi.length === 0">
+  <p>✅ Nema novih zahtjeva za zaduženje.</p>
+</div>
 <div class="modal" [ngClass]="{'show': showModal}">
   <div class="modal-content">
     <span class="close-button" (click)="closeModal()">&times;</span>

@@ -1,4 +1,74 @@
 <br>
+<!-- Forma za novi zahtjev -->
+<div class="container_all registration">
+  <h1>Pošalji zahtjev za zaduženje</h1>
+  <div class="form-container active">
+
+    <div class="form-field">
+      <label>Škola:</label>
+      <select class="custom-select" [(ngModel)]="noviZahtev.idSkole" 
+              (ngModelChange)="filterOdeljenjaZahtev($event)">
+        <option value="0" disabled>Izaberite školu</option>
+        <option *ngFor="let s of skole" [value]="s.id">{{ s.naziv }} ({{ s.grad }})</option>
+      </select>
+    </div>
+
+    <div class="form-field" *ngIf="selectedSkolaZahtev">
+      <label>Odeljenje:</label>
+      <select class="custom-select" [(ngModel)]="noviZahtev.idOdeljenja"
+              (ngModelChange)="filterPredmeteZahtev($event)">
+        <option value="" disabled>Izaberite odeljenje</option>
+        <option *ngFor="let o of zahteviOdeljenja" [value]="o.id">
+          {{ o.razred + "/" + o.brojOdeljenja }}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-field" *ngIf="noviZahtev.idOdeljenja">
+  <label>Predmet:</label>
+  <div *ngIf="zahteviPredmeti.length > 0">
+    <select class="custom-select" [(ngModel)]="noviZahtev.idPredmeta">
+      <option value="" disabled>Izaberite predmet</option>
+      <option *ngFor="let p of zahteviPredmeti" [value]="p.id">{{ p.naziv }}</option>
+    </select>
+  </div>
+  <p *ngIf="zahteviPredmeti.length === 0" style="color: #dc3545; font-weight: bold;">
+    ⚠ Svi predmeti za ovo odeljenje su već poslati ili odbijeni.
+  </p>
+</div>
+
+    <button class="submit-button"
+            [disabled]="!noviZahtev.idPredmeta || !noviZahtev.idOdeljenja"
+            (click)="posaljiZahtev()">
+      Pošalji zahtjev
+    </button>
+  </div>
+
+  <!-- Tabela zahtjeva -->
+  <div class="table-container" *ngIf="mojiZahtevi.length > 0">
+    <h2>Moji zahtjevi</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Predmet</th>
+          <th>Škola</th>
+          <th>Razred</th>
+          <th>Odeljenje</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let z of mojiZahtevi">
+          <td>{{ z.predmet?.naziv || '-' }}</td>
+          <td>{{ z.skola?.naziv || '-' }}</td>
+          <td>{{ z.odeljenje?.razred || '-' }}</td>
+          <td>{{ z.odeljenje?.brojOdeljenja || '-' }}</td>
+          <td><span [class]="getStatusClass(+z.status)">{{ getStatusLabel(+z.status) }}</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 <div class="container_all registration">
   <h1>Sva Zaduženja</h1> 
   <!-- Forma za filtriranje -->

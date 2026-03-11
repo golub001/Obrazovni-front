@@ -39,6 +39,17 @@ export class MojaZaduzenjaComponent implements OnInit {
   profOdeljenja: Odeljenje[] = [];
   profSkole: SkolaDTO[] = [];
 
+  noviZahtev = {
+  idProfesora: 0,
+  idPredmeta: '',
+  idOdeljenja: '',
+  idSkole: 0
+  };
+  mojiZahtevi: any[] = [];
+  zahteviOdeljenja: Odeljenje[] = [];
+  zahteviPredmeti: Predmet[] = [];
+  selectedSkolaZahtev = false;
+
   constructor(private userService: UserService, private zaduzenjaService: ZaduzenjaService, private router: Router) { 
 
     this.filterProfesor = this.userService.getCurrentUserId();
@@ -46,6 +57,8 @@ export class MojaZaduzenjaComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadZaduzenja();
+    this.noviZahtev.idProfesora = Number(this.filterProfesor);
+    this.loadMojiZahtevi();
   }
 
   loadZaduzenja() {
@@ -140,5 +153,67 @@ export class MojaZaduzenjaComponent implements OnInit {
     this.selectedOdeljenje = null; // Resetuje selektovano odeljenje na null da sakrije modal
     this.selectedUcenici = []; // Resetuje listu učenika
   }
-  
+  loadMojiZahtevi() {
+  this.zaduzenjaService.getZahteviByProfesorId(Number(this.filterProfesor)).subscribe(zahtevi => {
+    this.mojiZahtevi = zahtevi.map(z => ({
+      ...z,
+      predmet: this.predmeti.find(p => p.id == z.idPredmeta),
+      odeljenje: this.odeljenja.find(o => o.id == z.idOdeljenja),
+      skola: this.skole.find(s => s.id == z.idSkole)
+    }));
+  });
+}
+
+filterOdeljenjaZahtev(idSkole: number) {
+  this.zahteviOdeljenja = this.odeljenja.filter(x => x.idSkole == idSkole);
+  this.zahteviPredmeti = [];
+  this.noviZahtev.idOdeljenja = '';
+  this.noviZahtev.idPredmeta = '';
+  this.selectedSkolaZahtev = true;
+}
+
+filterPredmeteZahtev(idOdeljenja: string) {
+  var o = this.zahteviOdeljenja.find(o => o.id.toString() == idOdeljenja);
+  var sviPredmeti = this.predmeti.filter(p => p.razred == o?.razred);
+
+  this.zahteviPredmeti = sviPredmeti.filter(p => {
+    const postojiZahtev = this.mojiZahtevi.find(z => 
+      z.idPredmeta == p.id && 
+      z.idOdeljenja == idOdeljenja && 
+      (z.status == 0 || z.status == 2)
+    );
+    return !postojiZahtev;
+  });
+}
+
+posaljiZahtev() {
+  this.zaduzenjaService.dodajZahtev(this.noviZahtev).subscribe(res => {
+    if (res) {
+      alert('Zahtjev je uspješno poslat! Čekajte odobrenje admina.');
+      this.noviZahtev = { idProfesora: Number(this.filterProfesor), idPredmeta: '', idOdeljenja: '', idSkole: 0 };
+      this.selectedSkolaZahtev = false;
+      this.loadMojiZahtevi();
+    } else {
+      alert('Zahtjev već postoji ili je došlo do greške.');
+    }
+  });
+}
+
+getStatusLabel(status: number): string {
+  switch(status) {
+    case 0: return '⏳ Na čekanju';
+    case 1: return '✅ Odobren';
+    case 2: return '❌ Odbijen';
+    default: return '-';
+  }
+}
+
+getStatusClass(status: number): string {
+  switch(status) {
+    case 0: return 'status-pending';
+    case 1: return 'status-approved';
+    case 2: return 'status-rejected';
+    default: return '';
+  }
+}
 }

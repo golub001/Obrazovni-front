@@ -146,3 +146,45 @@ td button:hover {
   text-decoration: none;
   cursor: pointer;
 }
+.badge {
+  background-color: #FF914D;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 8px;
+  font-size: 14px;
+  margin-left: 8px;
+}
+
+.btn-odobri {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.btn-odobri:hover {
+  background-color: #218838;
+}
+
+.btn-odbij {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-odbij:hover {
+  background-color: #c82333;
+}
+
+.no-requests {
+  text-align: center;
+  color: #28a745;
+  font-weight: bold;
+  padding: 15px;
+}
