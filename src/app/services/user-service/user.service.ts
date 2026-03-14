@@ -129,7 +129,9 @@ export class UserService {
     return this.http.get<boolean>(this.url + "user.php?action=startNewSeason");
   }
 
-  getPasswordByEmail(email: string): Observable<User>{
-    return this.http.get<User>(this.url + "user.php?action=getPasswordByEmail&email="+email);
-  }
+  getPasswordByEmail(email: string): Observable<boolean> {
+  return this.http.get<boolean>(
+    this.url + "user.php?action=getPasswordByEmail&email=" + encodeURIComponent(email)
+  );
+}
 }

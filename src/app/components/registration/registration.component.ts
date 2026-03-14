@@ -259,82 +259,85 @@ validRowCount(): number {
   }
 
   async processCSV() {
-    var success = 0;
-    var failed = 0;
-    var sum = 0;
-    var badUserNames: any[] = [];
-  
-    for (const row of this.csvData) {
-      sum++;
-      const newUser: UserDTO = {
-        firstName: row['Ime'],
-        lastName: row['Prezime'],
-        username: row['Email'],
-        password: '123',
-        role: row['Role'],
-        id: 0,
-        action: 'addUser',
-        idSkole: row['idSkole']
-      };
-  
-      // Sačekaj odgovor iz checkUsername
-      const res = await this.userService.checkUsername(newUser.username).toPromise();
-      console.log('Email:', newUser.username, '| checkUsername vratio:', res, '| tip:', typeof res);
+  var success = 0;
+  var failed = 0;
+  var sum = 0;
+  var badUserNames: any[] = [];
+  var uspesniRedovi: number[] = []; // NOVO — prati indekse uspješnih
 
-      if (res) {
-        try {
-          // Sačekaj odgovor iz registerUser
-          const userId = await this.userService.registerUser(newUser).toPromise();
-          if (userId != null) {
-            if (newUser.role == 3) {
-              var odeljenje = this.odeljenja?.find(x => 
-                x.brojOdeljenja == row['Odeljenje'] && 
-                x.razred == row['Razred'] && 
-                x.idSkole == row['idSkole']
-              );
-              if (odeljenje) {
-                const odeljenjeRes = await this.zaduzenjaService.addOdeljenjeUcenik(userId, odeljenje.id).toPromise();
-                if (odeljenjeRes) {
-                  success++;
-                } else {
-                  failed++;
-                }
-              } else {
-                // Korisnik dodat ali odeljenje nije pronadjeno
+  for (let i = 0; i < this.csvData.length; i++) {
+    const row = this.csvData[i];
+    sum++;
+    const newUser: UserDTO = {
+      firstName: row['Ime'],
+      lastName: row['Prezime'],
+      username: row['Email'],
+      password: '123',
+      role: row['Role'],
+      id: 0,
+      action: 'addUser',
+      idSkole: row['idSkole']
+    };
+
+    const res = await this.userService.checkUsername(newUser.username).toPromise();
+
+    if (res) {
+      try {
+        const userId = await this.userService.registerUser(newUser).toPromise();
+        if (userId != null) {
+          this.emailService.sendMail(
+            "Vaš nalog na Platformi za programirano učenje je uspešno kreiran. Podaci za prijavu — EMAIL: " + newUser.username + " LOZINKA: 123",
+            newUser.username
+          ).subscribe({ error: () => {} });
+
+          if (newUser.role == 3) {
+            var odeljenje = this.odeljenja?.find(x => 
+              x.brojOdeljenja == row['Odeljenje'] && 
+              x.razred == row['Razred'] && 
+              x.idSkole == row['idSkole']
+            );
+            if (odeljenje) {
+              const odeljenjeRes = await this.zaduzenjaService.addOdeljenjeUcenik(userId, odeljenje.id).toPromise();
+              if (odeljenjeRes) {
                 success++;
-                console.warn('Odeljenje nije pronađeno za:', newUser.username, 
-                  '| Odeljenje:', row['Odeljenje'], 
-                  '| Razred:', row['Razred'], 
-                  '| idSkole:', row['idSkole']);
+                uspesniRedovi.push(i); // NOVO
+              } else {
+                failed++;
               }
             } else {
               success++;
+              uspesniRedovi.push(i); // NOVO
+              console.warn('Odeljenje nije pronađeno za:', newUser.username);
             }
           } else {
-            failed = failed + 1;
+            success++;
+            uspesniRedovi.push(i); // NOVO
           }
-        } catch (error) {
-          console.error("Greška prilikom registracije korisnika:", error);
-          failed = failed + 1;
+        } else {
+          failed++;
         }
-      } else {
-        failed = failed + 1;
-        badUserNames.push(newUser.username);
+      } catch (error) {
+        console.error("Greška prilikom registracije korisnika:", error);
+        failed++;
       }
+    } else {
+      failed++;
+      badUserNames.push(newUser.username);
     }
-  
-    // Prikaz rezultata nakon što se svi HTTP pozivi završe
-    if (badUserNames.length > 0) {
-      var text = "";
-      badUserNames.forEach(element => {
-        text = text + element + " ";
-      });
-      text = text + ";";
-      alert("Korisnici koji imaju nevalidan username: " + text);
-    }
-  
-    alert("Od ukupno " + sum + "učitanih podataka. Uspešno dodato: " + success + " korisnika, neuspešno dodato " + failed + " korisnika.");
   }
+
+  // Ukloni uspješne redove iz tabele (od kraja da ne pomjeri indekse)
+  for (let i = uspesniRedovi.length - 1; i >= 0; i--) {
+    this.csvData.splice(uspesniRedovi[i], 1);
+  }
+
+  if (badUserNames.length > 0) {
+    var text = badUserNames.join(", ");
+    alert("Korisnici koji imaju nevalidan username: " + text);
+  }
+
+  alert("Od ukupno " + sum + " učitanih podataka. Uspešno dodato: " + success + " korisnika, neuspešno dodato " + failed + " korisnika.");
+}
   
 
   onFileSelected(event: any) {

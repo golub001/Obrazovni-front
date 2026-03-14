@@ -82,23 +82,22 @@ export class LoginComponent implements OnInit {
   }
 
   onForgotPassword() {
-    const email = this.loginForm.get('username')?.value;
+  const email = this.loginForm.get('username')?.value;
 
-    if (email) {
-      this.authService.getPasswordByEmail(email).subscribe(
-        (user: User) => {
-          if (user) {
-            this.emailService.sendMail("Vaša lozinka na Platformi za programirano učenje je: "+ user.password, email).subscribe();
-            // Ovde možete pozvati servis koji će obraditi resetovanje lozinke
-            this.router.navigate(['/home']);
-            alert('Vaša lozinka na Platformi za programirano učenje je poslata na email adresu!');
-          } else {
-            alert('Došlo je do greške prilikom promene lozinke!');
-          }
-        }
-      );
-    } else {
-      alert("Unesite email pre nego što zatražite resetovanje lozinke.");
-    }
+  if (!email) {
+    alert("Unesite email pre nego što zatražite resetovanje lozinke.");
+    return;
   }
+
+  this.authService.getPasswordByEmail(email).subscribe({
+    next: (res: any) => {
+      if (res === true || res?.success !== false) {
+        alert('Nova lozinka je poslata na vaš email!');
+      } else {
+        alert('Korisnik sa tim emailom ne postoji.');
+      }
+    },
+    error: () => alert('Došlo je do greške.')
+  });
+}
 }
